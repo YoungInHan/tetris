@@ -3,9 +3,9 @@ let tetris = {};
 
 tetris.drawPlayField = () => {
     for (let row = 0; row < 22; row++) {
-        $('#playfield').append('');
+        $('#playfield').append(`<tr class="${row}"></tr>`);
         for (let col = 0; col < 10; col++) {
-            $('.'+row).append('');
+            $(`.${row}`).append(`<td id="${col}"></td>`);
         }
     }
 }
