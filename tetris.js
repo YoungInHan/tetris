@@ -18,7 +18,6 @@ tetris.currentCoor = [
 ];
 
 tetris.fillCells = (coordinates, fillColor) => {
-    console.log(fillColor);
     for (let i = 0; i < coordinates.length; i++) {
         let row = coordinates[i].row;
         let col = coordinates[i].col;
@@ -27,9 +26,31 @@ tetris.fillCells = (coordinates, fillColor) => {
     }
 }
 
+tetris.move = function (direction){
+    this.fillCells(this.currentCoor, '');
+    for (let i = 0; i < this.currentCoor.length; i++) {
+        if (direction === 'R') {
+            this.currentCoor[i].col++;
+        } else if (direction === 'L') {
+            this.currentCoor[i].col--;
+        }
+    }
+    this.fillCells(this.currentCoor, 'blue');
+}
+
 $(document).ready(() => {
     tetris.drawPlayField();
     tetris.fillCells(tetris.currentCoor, 'blue');
+    
+    $(document).keydown((e)=> {
+        console.log(e.keyCode);
+        if (e.keyCode === 39) {
+            tetris.move('R');
+        }
+        if (e.keyCode === 37) {
+            tetris.move('L');
+        }
+    })
 })
 
 
