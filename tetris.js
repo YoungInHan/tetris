@@ -9,12 +9,12 @@ tetris.drawPlayField = () => {
         }
     }
 }
+
 tetris.origin = {row:5,col:5};
-tetris.currentShape = 'T';
+tetris.currentShape = 'I';
 tetris.currentCoor;
 
 tetris.shapeToCoor = (shape, origin) => {
-    console.log('yea');
     switch (shape) {
         case 'L':
             return [
@@ -23,12 +23,40 @@ tetris.shapeToCoor = (shape, origin) => {
                 {row: origin.row+1, col: origin.col},
                 {row: origin.row+1, col: origin.col+1},
             ];
+        case 'L90':
+            return [
+                {row: origin.row, col: origin.col},
+                {row: origin.row, col: origin.col+1},
+                {row: origin.row, col: origin.col-1},
+                {row: origin.row+1, col: origin.col-1},
+            ];
+        case 'L180':
+            return [
+                {row: origin.row, col: origin.col},
+                {row: origin.row-1, col: origin.col},
+                {row: origin.row+1, col: origin.col},
+                {row: origin.row-1, col: origin.col-1},
+            ];
+        case 'L270':
+            return [
+                {row: origin.row, col: origin.col},
+                {row: origin.row, col: origin.col+1},
+                {row: origin.row, col: origin.col-1},
+                {row: origin.row-1, col: origin.col+1},
+            ];
         case 'I':
             return [
                 {row: origin.row, col: origin.col},
                 {row: origin.row-1, col: origin.col},
                 {row: origin.row+1, col: origin.col},
                 {row: origin.row+2, col: origin.col},
+            ];
+        case 'I90':
+            return [
+                {row: origin.row, col: origin.col},
+                {row: origin.row, col: origin.col-1},
+                {row: origin.row, col: origin.col+1},
+                {row: origin.row, col: origin.col+2},
             ];
         case 'J':
             return [
@@ -70,6 +98,44 @@ tetris.shapeToCoor = (shape, origin) => {
     }
 }
 
+tetris.rotate = function() {
+    let lastShape = this.currentShape;
+    this.fillCells(this.currentCoor, '');
+    switch (this.currentShape) {
+        case 'L':
+            this.currentShape = 'L90';
+            break;
+        case 'L90':
+            this.currentShape = 'L180';
+            break;
+        case 'L180':
+            this.currentShape = 'L270';
+            break;
+        case 'L270':
+            this.currentShape = 'L';
+            break;
+        case 'I':
+            this.currentShape = 'I90';
+            break;
+        case 'I90':
+            this.currentShape = 'I';
+            break;
+        default:
+            throw new Error('Unexpected letter passed into rotate');
+    }
+    this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
+    for(let i = 0; i < this.currentCoor.length; i++){
+		if(this.currentCoor[i].col > 9) {
+            tetris.move('L');
+        }
+        if (this.currentCoor[i].col < 0) {
+            tetris.move('R');
+        }
+	}
+    this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
+    this.fillCells(this.currentCoor, 'blue');
+}
+
 tetris.fillCells = (coordinates, fillColor) => {
     for (let i = 0; i < coordinates.length; i++) {
         let row = coordinates[i].row;
@@ -95,6 +161,13 @@ tetris.move = function (direction){
             }
         }
     }
+
+    if (direction === 'R') {
+        this.origin.col++;
+    } else if (direction === 'L') {
+        this.origin.col--;
+    }
+    
     this.fillCells(this.currentCoor, 'blue');
 
     if(onBorder && direction === 'L'){
@@ -111,6 +184,9 @@ $(document).ready(() => {
     $(document).keydown((e)=> {
         if (e.keyCode === 39) {
             tetris.move('R');
+        }
+        if (e.keyCode === 38){
+            tetris.rotate();
         }
         if (e.keyCode === 37) {
             tetris.move('L');
