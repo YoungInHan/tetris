@@ -23,40 +23,12 @@ tetris.shapeToCoor = (shape, origin) => {
                 {row: origin.row+1, col: origin.col},
                 {row: origin.row+1, col: origin.col+1},
             ];
-        case 'L90':
-            return [
-                {row: origin.row, col: origin.col},
-                {row: origin.row, col: origin.col+1},
-                {row: origin.row, col: origin.col-1},
-                {row: origin.row+1, col: origin.col-1},
-            ];
-        case 'L180':
-            return [
-                {row: origin.row, col: origin.col},
-                {row: origin.row-1, col: origin.col},
-                {row: origin.row+1, col: origin.col},
-                {row: origin.row-1, col: origin.col-1},
-            ];
-        case 'L270':
-            return [
-                {row: origin.row, col: origin.col},
-                {row: origin.row, col: origin.col+1},
-                {row: origin.row, col: origin.col-1},
-                {row: origin.row-1, col: origin.col+1},
-            ];
         case 'I':
             return [
                 {row: origin.row, col: origin.col},
                 {row: origin.row-1, col: origin.col},
                 {row: origin.row+1, col: origin.col},
                 {row: origin.row+2, col: origin.col},
-            ];
-        case 'I90':
-            return [
-                {row: origin.row, col: origin.col},
-                {row: origin.row, col: origin.col-1},
-                {row: origin.row, col: origin.col+1},
-                {row: origin.row, col: origin.col+2},
             ];
         case 'J':
             return [
@@ -89,9 +61,9 @@ tetris.shapeToCoor = (shape, origin) => {
         case 'S':
             return [
                 {row: origin.row, col: origin.col},
-                {row: origin.row-1, col: origin.col},
-                {row: origin.row, col: origin.col-1},
-                {row: origin.row-1, col: origin.col+1},
+                {row: origin.row+1, col: origin.col},
+                {row: origin.row+1, col: origin.col-1},
+                {row: origin.row, col: origin.col+1},
             ];
         default: 
             throw new Error('Unexpected letter passed into shapeToCoor()');
@@ -99,31 +71,21 @@ tetris.shapeToCoor = (shape, origin) => {
 }
 
 tetris.rotate = function() {
-    let lastShape = this.currentShape;
     this.fillCells(this.currentCoor, '');
-    switch (this.currentShape) {
-        case 'L':
-            this.currentShape = 'L90';
-            break;
-        case 'L90':
-            this.currentShape = 'L180';
-            break;
-        case 'L180':
-            this.currentShape = 'L270';
-            break;
-        case 'L270':
-            this.currentShape = 'L';
-            break;
-        case 'I':
-            this.currentShape = 'I90';
-            break;
-        case 'I90':
-            this.currentShape = 'I';
-            break;
-        default:
-            throw new Error('Unexpected letter passed into rotate');
-    }
-    this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
+    for (let i = 0; i < this.currentCoor.length; i++) {
+        this.currentCoor[i].row = this.currentCoor[i].row - this.origin.row;
+        this.currentCoor[i].col = this.currentCoor[i].col - this.origin.col;
+    };
+    for (let i = 0; i < this.currentCoor.length; i++) {
+        let temp = this.currentCoor[i].row;
+        this.currentCoor[i].row =  this.currentCoor[i].col;
+        this.currentCoor[i].col = -temp;
+    }; 
+    for( let i = 0; i < this.currentCoor.length; i++) {
+        this.currentCoor[i].row = this.currentCoor[i].row + this.origin.row;
+        this.currentCoor[i].col = this.currentCoor[i].col + this.origin.col;
+    };
+
     for(let i = 0; i < this.currentCoor.length; i++){
 		if(this.currentCoor[i].col > 9) {
             tetris.move('L');
@@ -132,7 +94,6 @@ tetris.rotate = function() {
             tetris.move('R');
         }
 	}
-    this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
     this.fillCells(this.currentCoor, 'blue');
 }
 
