@@ -10,8 +10,8 @@ tetris.drawPlayField = () => {
     }
 }
 
-tetris.origin = {row:5,col:5};
-tetris.currentShape = 'I';
+tetris.origin = {row:1,col:5};
+tetris.currentShape = 'J';
 tetris.currentCoor;
 
 tetris.shapeToCoor = (shape, origin) => {
@@ -70,21 +70,32 @@ tetris.shapeToCoor = (shape, origin) => {
     }
 }
 
-tetris.rotate = function() {
+tetris.rotate = function(direction) {
+    let factor = 1
+    if (direction === 'ccw') {
+        factor = -1;
+    } else {
     this.fillCells(this.currentCoor, '');
+    }
+    let prevCoor = this.currentCoor;
     for (let i = 0; i < this.currentCoor.length; i++) {
         this.currentCoor[i].row = this.currentCoor[i].row - this.origin.row;
         this.currentCoor[i].col = this.currentCoor[i].col - this.origin.col;
     };
     for (let i = 0; i < this.currentCoor.length; i++) {
         let temp = this.currentCoor[i].row;
-        this.currentCoor[i].row =  this.currentCoor[i].col;
-        this.currentCoor[i].col = -temp;
+        this.currentCoor[i].row =  this.currentCoor[i].col*factor;
+        this.currentCoor[i].col = -temp*factor;
     }; 
     for( let i = 0; i < this.currentCoor.length; i++) {
         this.currentCoor[i].row = this.currentCoor[i].row + this.origin.row;
         this.currentCoor[i].col = this.currentCoor[i].col + this.origin.col;
     };
+    for (let i = 0; i < this.currentCoor.length; i++) {
+        if (this.isReverse()) {
+            tetris.rotate('ccw');
+        }
+    }
 
     for(let i = 0; i < this.currentCoor.length; i++){
 		if(this.currentCoor[i].col > 9) {
@@ -93,7 +104,8 @@ tetris.rotate = function() {
         if (this.currentCoor[i].col < 0) {
             tetris.move('R');
         }
-	}
+    }
+
     this.fillCells(this.currentCoor, 'blue');
 }
 
@@ -101,24 +113,31 @@ tetris.fillCells = (coordinates, fillColor) => {
     for (let i = 0; i < coordinates.length; i++) {
         let row = coordinates[i].row;
         let col = coordinates[i].col;
-        var $coor = $(`.${row}`).find(`#${col}`);
+        let $coor = $(`.${row}`).find(`#${col}`);
         $coor.attr('bgcolor', fillColor);
     }
 }
 
 tetris.move = function (direction){
     let onBorder = false;
+    let isCollision = false;
     this.fillCells(this.currentCoor, '');
     for (let i = 0; i < this.currentCoor.length; i++) {
         if (direction === 'R') {
             this.currentCoor[i].col++;
             if (this.currentCoor[i].col > 9) {
                 onBorder = true;
+            } 
+            if (this.isReverse()) {
+                isCollision = true;
             }
         } else if (direction === 'L') {
             this.currentCoor[i].col--;
             if (this.currentCoor[i].col < 0) {
                 onBorder = true;
+            }
+            if (this.isReverse()) {
+                isCollision = true;
             }
         }
     }
@@ -129,13 +148,105 @@ tetris.move = function (direction){
         this.origin.col--;
     }
     
-    this.fillCells(this.currentCoor, 'blue');
 
-    if(onBorder && direction === 'L'){
-        this.move('R');
-    } else if (onBorder && direction === 'R'){
-        this.move('L');
+    if(isCollision && direction === 'L'){
+        this.undo('R');
+    } else if (isCollision && direction === 'R'){
+        this.undo('L');
     }
+    
+    this.fillCells(this.currentCoor, 'blue');
+    if(onBorder && direction === 'L'){
+        this.undo('R', 'wall');
+    } else if (onBorder && direction === 'R'){
+        this.undo('L', 'wall');
+    }
+}
+
+tetris.undo = function(direction, type) {
+    if (type === 'wall') {
+        this.fillCells(this.currentCoor, '');
+    }
+    for (let i = 0; i < this.currentCoor.length; i++) {
+        if (direction === 'R') {
+            this.currentCoor[i].col++;
+        } else if (direction === 'L') {
+            this.currentCoor[i].col--;
+        }
+    }
+
+    if (direction === 'R') {
+        this.origin.col++;
+    } else if (direction === 'L') {
+        this.origin.col--;
+    }    
+    this.fillCells(this.currentCoor, 'blue');
+}
+
+tetris.drop = function() {
+    let reverse = false;
+    this.fillCells(this.currentCoor,'');
+    this.origin.row++;
+    for(let i = 0; i < this.currentCoor.length; i++){
+        this.currentCoor[i].row++;
+		if(this.currentCoor[i].row > 21 || this.isReverse()){
+			reverse = true;
+        }
+    }
+    
+    if (reverse) {
+        for (let i = 0; i < this.currentCoor.length; i++) {
+            this.currentCoor[i].row--;
+        }
+        this.origin.row--;
+    }
+    this.fillCells(this.currentCoor, 'blue');
+    if (reverse) {
+        this.fillCells(this.currentCoor,'BLUE');
+        this.emptyFullRow();
+        tetris.spawn();
+    }
+}
+
+tetris.isReverse = function() {
+    for(let i = 0; i < this.currentCoor.length; i++){
+        let row = this.currentCoor[i].row;
+        let col = this.currentCoor[i].col;
+        let $coor = $(`.${row}`).find(`#${col}`);
+        if($coor.attr('bgcolor') === 'BLUE') {
+            return true;
+        }
+    }
+    return false;
+}
+
+tetris.emptyFullRow = function() {
+    let drops = 0;
+    for (let i = 21; i >= 0; i--) {
+        let rowIsFull = true;
+            for (let j = 0 ;j < 10; j++){
+            let $coor = $(`.${i}`).find(`#${j}`);
+            if($coor.attr('bgcolor') !== 'BLUE'){
+                rowIsFull = false;
+            }
+                if(drops > 0){
+                let $newCoor = $('.'+(i+drops)).find('#'+j);
+                $newCoor.attr('bgcolor', $coor.attr('bgcolor'));
+            }
+        }
+        if(rowIsFull){
+            drops++;
+        }
+    }
+}
+
+tetris.spawn = function() {
+    let random = Math.floor(Math.random()*7);
+    let shapeArray = ['L','J','I','O','S','T','Z'];
+    //let shapeArray = ['I','I','I','I','I','I','I'];
+    this.currentShape = shapeArray[random];
+    this.origin = {row:2,col:5};
+    this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
 }
 
 $(document).ready(() => {
@@ -152,7 +263,13 @@ $(document).ready(() => {
         if (e.keyCode === 37) {
             tetris.move('L');
         }
+        else if (e.keyCode === 40){
+            tetris.drop();
+        }
     })
+    let gravity = setInterval(() =>{
+		tetris.drop();
+	},500);
 })
 
 
