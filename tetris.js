@@ -322,7 +322,7 @@ game.addScore = function(numRows) {
             break;
             
     }
-    $('#score').text(`Score: ${this.score}`);
+    $('#score').text(`score ${this.score}`);
 }
 
 game.play = function() {
@@ -352,7 +352,7 @@ game.play = function() {
 
     let timer = setInterval(() => {
         this.time += 1;
-        $('#timer').text(`Time: ${this.time}`);
+        $('#timer').text(`time: ${this.time}`);
     }, 1000);
 
 
