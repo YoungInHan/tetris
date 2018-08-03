@@ -204,6 +204,10 @@ tetris.drop = function() {
     if (reverse) {
         this.fillCells(this.currentCoor,'BLUE');
         this.emptyFullRow();
+        if (this.lost()) {
+            alert('you lost fam');
+            throw new Error();
+        }
         tetris.spawn();
     }
 }
@@ -213,6 +217,16 @@ tetris.isReverse = function() {
         let row = this.currentCoor[i].row;
         let col = this.currentCoor[i].col;
         let $coor = $(`.${row}`).find(`#${col}`);
+        if($coor.attr('bgcolor') === 'BLUE') {
+            return true;
+        }
+    }
+    return false;
+}
+
+tetris.lost = function () {
+    for (let i = 0; i < 10; i++) {
+        let $coor = $('.3').find(`#${i}`);
         if($coor.attr('bgcolor') === 'BLUE') {
             return true;
         }
