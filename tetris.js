@@ -213,6 +213,37 @@ tetris.drop = function() {
     }
 }
 
+tetris.fullDrop = function() {
+    let reverse = false;
+    while (!reverse) {
+        this.fillCells(this.currentCoor,'');
+        this.origin.row++;
+        for(let i = 0; i < this.currentCoor.length; i++){
+            this.currentCoor[i].row++;
+            if(this.currentCoor[i].row > 21 || this.isReverse()){
+                reverse = true;
+            }
+        }
+        
+        if (reverse) {
+            for (let i = 0; i < this.currentCoor.length; i++) {
+                this.currentCoor[i].row--;
+            }
+            this.origin.row--;
+        }
+        this.fillCells(this.currentCoor, 'blue');
+        if (reverse) {
+            this.fillCells(this.currentCoor,'BLUE');
+            this.emptyFullRow();
+            if (this.lost()) {
+                alert('you lost fam');
+                throw new Error();
+            }
+            tetris.spawn();
+        }
+    }
+}
+
 tetris.isReverse = function() {
     for(let i = 0; i < this.currentCoor.length; i++){
         let row = this.currentCoor[i].row;
@@ -253,11 +284,15 @@ tetris.emptyFullRow = function() {
             drops++;
         }
     }
+    if (drops > 0) {
+        game.addScore(drops);
+    }
 }
 
 tetris.spawn = function() {
     let random = Math.floor(Math.random()*7);
-    let shapeArray = ['L','J','I','O','S','T','Z'];
+    //let shapeArray = ['L','J','I','O','S','T','Z'];
+    let shapeArray = ['I','I','I','I','I','I','I'];
     this.currentShape = shapeArray[random];
     this.origin = {row:2,col:5};
     this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
@@ -269,7 +304,26 @@ $(document).ready(() => {
 })
 
 game.time = 0;
-game.gravity_speed = 500;
+game.score = 0;
+
+game.addScore = function(numRows) {
+    switch (numRows) {
+        case 1:
+            this.score += 40;
+            break;
+        case 2:
+            this.score += 100;
+            break;
+        case 3:
+            this.score += 300;
+            break;
+        case 4:
+            this.score += 1200;
+            break;
+            
+    }
+    $('#score').text(`Score: ${this.score}`);
+}
 
 game.play = function() {
     tetris.drawPlayField();
@@ -291,6 +345,9 @@ game.play = function() {
         if (e.keyCode === 27){
             alert('Paused.');
         }  
+        if (e.keyCode === 32){
+            tetris.fullDrop();
+        }  
     })
 
     let timer = setInterval(() => {
@@ -298,16 +355,9 @@ game.play = function() {
         $('#timer').text(`Time: ${this.time}`);
     }, 1000);
 
-    // let increase_difficulty = setInterval(() => {
-    //     if (this.gravity_speed > 100) {
-    //         this.gravity_speed = this.gravity_speed - 100;
-    //     }
-    //     console.log(this.gravity_speed)
-    // }, 1000);
 
     let gravity = setInterval(() =>{
         tetris.drop();
-        //clearInterval(gravity);
     },500);
 
 }
