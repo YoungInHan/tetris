@@ -1,5 +1,6 @@
 
 let tetris = {};
+let game = {};
 
 tetris.drawPlayField = () => {
     for (let row = 0; row < 22; row++) {
@@ -257,13 +258,20 @@ tetris.emptyFullRow = function() {
 tetris.spawn = function() {
     let random = Math.floor(Math.random()*7);
     let shapeArray = ['L','J','I','O','S','T','Z'];
-    //let shapeArray = ['I','I','I','I','I','I','I'];
     this.currentShape = shapeArray[random];
     this.origin = {row:2,col:5};
     this.currentCoor = this.shapeToCoor(this.currentShape, this.origin);
 }
 
 $(document).ready(() => {
+
+    game.play();
+})
+
+game.time = 0;
+game.gravity_speed = 500;
+
+game.play = function() {
     tetris.drawPlayField();
     tetris.currentCoor = tetris.shapeToCoor(tetris.currentShape, tetris.origin);
     tetris.fillCells(tetris.currentCoor, 'blue');
@@ -277,13 +285,31 @@ $(document).ready(() => {
         if (e.keyCode === 37) {
             tetris.move('L');
         }
-        else if (e.keyCode === 40){
+        if (e.keyCode === 40){
             tetris.drop();
         }
+        if (e.keyCode === 27){
+            alert('Paused.');
+        }  
     })
+
+    let timer = setInterval(() => {
+        this.time += 1;
+        $('#timer').text(`Time: ${this.time}`);
+    }, 1000);
+
+    // let increase_difficulty = setInterval(() => {
+    //     if (this.gravity_speed > 100) {
+    //         this.gravity_speed = this.gravity_speed - 100;
+    //     }
+    //     console.log(this.gravity_speed)
+    // }, 1000);
+
     let gravity = setInterval(() =>{
-		tetris.drop();
-	},500);
-})
+        tetris.drop();
+        //clearInterval(gravity);
+    },500);
+
+}
 
 

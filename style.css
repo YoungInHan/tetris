@@ -1,5 +1,9 @@
 td {
     width: 25px;
     height: 25px;
-    border: 1px solid black; 
+    border: 1px solid #A7A2A9; 
+}
+
+#playfield {
+    margin: auto;
 }
